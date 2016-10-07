@@ -6,9 +6,9 @@ const Intercomm = require('intercomm');
 
 // own dependencies
 const aux    = require('./auxiliary');
-const errors = require('../shared/errors');
+const errors = require('./shared/errors');
 
-const SHARED_CONSTANTS = require('../shared/constants');
+const SHARED_CONSTANTS = require('./shared/constants');
 
 /**
  * The BaseClient constructor

@@ -10,9 +10,9 @@ const BaseClient = require('../base');
 
 const aux = require('../auxiliary');
 
-const SHARED_CONSTANTS = require('../../shared/constants');
+const SHARED_CONSTANTS = require('../shared/constants');
 const ROLES = SHARED_CONSTANTS.ROLES;
-const errors = require('../../shared/errors');
+const errors = require('../shared/errors');
 
 /**
  * Auxiliary function that authenticates a socket connection
@@ -74,9 +74,14 @@ function _authenticateSocketConnection(client, socket, authToken, code) {
     // The '/' stands for the default namespace
     // and the '#' is for rooom naming
     // https://github.com/socketio/socket.io/blob/master/lib/socket.js#L62
+    // NOTE: since 1.5.0 this behavior is not anymore.
+    // we'll keep the two versions around just in case,
+    // but it seems to have been solved.
+    // https://github.com/socketio/socket.io/releases/tag/1.5.0
 
     // set the ipc node's id to match the socket's id
-    client.id = '/#' + socket.id;
+    // client.id = '/#' + socket.id;
+    client.id = socket.id;
 
     return;
   });

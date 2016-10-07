@@ -9,9 +9,9 @@ const BaseClient = require('./base');
 
 const aux = require('./auxiliary');
 
-const SHARED_CONSTANTS = require('../shared/constants');
+const SHARED_CONSTANTS = require('./shared/constants');
 const ROLES = SHARED_CONSTANTS.ROLES;
-const errors = require('../shared/errors');
+const errors = require('./shared/errors');
 
 function _authenticateAnonymousSocketConnection(client, socket, code) {
 
