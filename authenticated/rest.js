@@ -4,7 +4,7 @@ const Bluebird   = require('bluebird');
 
 const errors = require('../shared/errors');
 
-exports.getByProjectId = function (authToken, projectId) {
+exports.get = function (authToken, projectId, options) {
   if (!authToken) {
     return Bluebird.reject(new errors.Unauthorized());
   }
@@ -13,11 +13,23 @@ exports.getByProjectId = function (authToken, projectId) {
     return Bluebird.reject(new errors.InvalidOption('projectId', 'required', 'projectId is required'));
   }
 
+  options = options || {};
+
   var serverURI = this.serverURI;
+  var query = {};
+
+  if (options.byProjectId) {
+    query.byProjectId = true;
+  }
+
+  if (options.byProjectCode) {
+    query.byProjectCode = true;
+  }
 
   return new Bluebird(function (resolve, reject) {
     superagent
       .get(serverURI + '/project/' + projectId + '/workspace')
+      .query(query)
       .set('Authorization', 'Bearer ' + authToken)
       .end(function (err, res) {
         if (err) {
@@ -35,7 +47,7 @@ exports.getByProjectId = function (authToken, projectId) {
   });
 };
 
-exports.create = function (authToken, projectId, workspaceData) {
+exports.ensureReady = function (authToken, projectId, workspaceData) {
   if (!authToken) {
     return Bluebird.reject(new errors.Unauthorized());
   }
@@ -50,7 +62,7 @@ exports.create = function (authToken, projectId, workspaceData) {
 
   return new Bluebird(function (resolve, reject) {
     superagent
-      .post(serverURI + '/project/' + projectId + '/workspaces')
+      .post(serverURI + '/project/' + projectId + '/workspace/ensure-ready')
       .send(workspaceData)
       .set('Authorization', 'Bearer ' + authToken)
       .end(function (err, res) {
