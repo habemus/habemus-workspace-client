@@ -4,25 +4,29 @@ const Bluebird   = require('bluebird');
 
 const errors = require('../shared/errors');
 
-exports.getWorkspaceByCode = function (authToken, identifier) {
+exports.getByProjectId = function (authToken, projectId) {
   if (!authToken) {
     return Bluebird.reject(new errors.Unauthorized());
   }
 
-  if (!identifier) {
-    return Bluebird.reject(new errors.InvalidOption('identifier', 'required', 'identifier is required'));
+  if (!projectId) {
+    return Bluebird.reject(new errors.InvalidOption('projectId', 'required', 'projectId is required'));
   }
 
   var serverURI = this.serverURI;
 
   return new Bluebird(function (resolve, reject) {
     superagent
-      .get(serverURI + '/workspace/' + identifier)
+      .get(serverURI + '/project/' + projectId + '/workspace')
       .set('Authorization', 'Bearer ' + authToken)
       .end(function (err, res) {
         if (err) {
 
-          reject(res.body.error);
+          if (res && res.body && res.body.error) {
+            reject(res.body.error);
+          } else {
+            reject(err);
+          }
           return;
         }
 
@@ -31,25 +35,32 @@ exports.getWorkspaceByCode = function (authToken, identifier) {
   });
 };
 
-exports.createWorkspace = function (authToken, workspaceData) {
+exports.create = function (authToken, projectId, workspaceData) {
   if (!authToken) {
     return Bluebird.reject(new errors.Unauthorized());
   }
 
-  if (!workspaceData.projectCode) {
-    return Bluebird.reject(new errors.InvalidOption('projectCode', 'required', 'name is required'));
+  if (!projectId) {
+    return Bluebird.reject(new errors.InvalidOption('projectId', 'required', 'projectId is required'));
   }
+
+  workspaceData = workspaceData || {};
 
   var serverURI = this.serverURI;
 
   return new Bluebird(function (resolve, reject) {
     superagent
-      .post(serverURI + '/workspaces')
+      .post(serverURI + '/project/' + projectId + '/workspaces')
       .send(workspaceData)
       .set('Authorization', 'Bearer ' + authToken)
       .end(function (err, res) {
         if (err) {
-          reject(res.body.error);
+
+          if (res && res.body && res.body.error) {
+            reject(res.body.error);
+          } else {
+            reject(err);
+          }
           return;
         }
 
