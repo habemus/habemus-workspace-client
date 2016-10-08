@@ -6,8 +6,8 @@ const socketIOClient = require('socket.io-client');
 const Bluebird       = require('bluebird');
 
 // own dependencies
-const errors = require('./shared/errors');
-const SHARED_CONSTANTS = require('./shared/constants');
+const errors = require('../shared/errors');
+const SHARED_CONSTANTS = require('../shared/constants');
 
 const TRALING_SLASH_RE = /\/$/;
 const STARTING_SLASH_RE = /^\//;

@@ -2,7 +2,7 @@
 const superagent = require('superagent');
 const Bluebird   = require('bluebird');
 
-const errors = require('../shared/errors');
+const errors = require('../../shared/errors');
 
 exports.get = function (authToken, identifier, options) {
   if (!authToken) {

@@ -3,9 +3,9 @@ const Bluebird = require('bluebird');
 
 const aux = require('../../auxiliary');
 
-const SHARED_CONSTANTS = require('../../shared/constants');
+const SHARED_CONSTANTS = require('../../../shared/constants');
 const ROLES = SHARED_CONSTANTS.ROLES;
-const errors = require('../../shared/errors');
+const errors = require('../../../shared/errors');
 
 /**
  * Auxiliary function that authenticates a socket connection

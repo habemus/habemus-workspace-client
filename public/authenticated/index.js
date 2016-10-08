@@ -10,8 +10,8 @@ const BaseClient = require('../base');
 
 const aux = require('../auxiliary');
 
-const SHARED_CONSTANTS = require('../shared/constants');
-const errors = require('../shared/errors');
+const SHARED_CONSTANTS = require('../../shared/constants');
+const errors = require('../../shared/errors');
 
 /**
  * Authenticated client constructor
