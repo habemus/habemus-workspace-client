@@ -4,7 +4,15 @@ const Bluebird   = require('bluebird');
 
 const errors = require('../shared/errors');
 
-exports.get = function (authToken, identifier, options) {
+// constants
+const TRAILING_SLASH_RE = /\/$/;
+
+function PrivateHWorkspaceClient(options) {
+  // save the data
+  this.serverURI = options.serverURI.replace(TRAILING_SLASH_RE, '');
+}
+
+PrivateHWorkspaceClient.prototype.get = function (authToken, identifier, options) {
   if (!authToken) {
     return Bluebird.reject(new errors.Unauthorized());
   }
@@ -47,36 +55,4 @@ exports.get = function (authToken, identifier, options) {
   });
 };
 
-exports.ensureReady = function (authToken, identifier, workspaceData) {
-  if (!authToken) {
-    return Bluebird.reject(new errors.Unauthorized());
-  }
-
-  if (!identifier) {
-    return Bluebird.reject(new errors.InvalidOption('identifier', 'required', 'identifier is required'));
-  }
-
-  workspaceData = workspaceData || {};
-
-  var serverURI = this.serverURI;
-
-  return new Bluebird(function (resolve, reject) {
-    superagent
-      .post(serverURI + '/project/' + identifier + '/workspace/ensure-ready')
-      .send(workspaceData)
-      .set('Authorization', 'Bearer ' + authToken)
-      .end(function (err, res) {
-        if (err) {
-
-          if (res && res.body && res.body.error) {
-            reject(res.body.error);
-          } else {
-            reject(err);
-          }
-          return;
-        }
-
-        resolve(res.body.data);
-      });
-  });
-};
+module.exports = PrivateHWorkspaceClient;

@@ -8,6 +8,9 @@ const Intercomm = require('intercomm');
 const aux    = require('./auxiliary');
 const errors = require('./shared/errors');
 
+// constants
+const TRAILING_SLASH_RE = /\/$/;
+
 const SHARED_CONSTANTS = require('./shared/constants');
 
 /**
@@ -28,7 +31,7 @@ function BaseClient(options) {
   if (!options.serverURI) { throw new TypeError('serverURI is required'); }
 
   // save the data
-  this.serverURI = options.serverURI;
+  this.serverURI = options.serverURI.replace(TRAILING_SLASH_RE, '');
 }
 
 util.inherits(BaseClient, Intercomm);
