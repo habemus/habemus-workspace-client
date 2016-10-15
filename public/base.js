@@ -30,8 +30,14 @@ function BaseClient(options) {
 
   if (!options.serverURI) { throw new TypeError('serverURI is required'); }
 
-  // save the data
+  // save the serverURI
   this.serverURI = options.serverURI.replace(TRAILING_SLASH_RE, '');
+
+  /**
+   * Indicates whether the client is connected via ws to the server
+   * MUST be changed by the connecting and disconnecting methods
+   */
+  this.connected = false;
 }
 
 util.inherits(BaseClient, Intercomm);
@@ -48,6 +54,12 @@ BaseClient.prototype.errors = errors;
  * @param  {Object} message
  */
 BaseClient.prototype.sendMessage = function (message) {
+
+  if (!this.connected) {
+    // TODO: let intercomm handle sendMessage errors!
+    throw new Error('socket not connected');
+  }
+
   this.socket.emit(SHARED_CONSTANTS.MESSAGE_EVENT, message);
 };
 

@@ -3,8 +3,8 @@ const Bluebird = require('bluebird');
 
 const aux = require('../../auxiliary');
 
-const SHARED_CONSTANTS = require('../../../shared/constants');
-const ROLES = SHARED_CONSTANTS.ROLES;
+const CONSTANTS = require('../../../shared/constants');
+const ROLES = CONSTANTS.ROLES;
 const errors = require('../../../shared/errors');
 
 /**
@@ -22,8 +22,8 @@ function _authenticateSocketConnection(client, socket, authToken, code) {
     // removes auth success/error handlers
     function _off() {
       // remove auth event listeners
-      socket.off(SHARED_CONSTANTS.AUTH_SUCCESS_EVENT, _onAuthSuccess);
-      socket.off(SHARED_CONSTANTS.AUTH_ERROR_EVENT, _onAuthError);
+      socket.off(CONSTANTS.AUTH_SUCCESS_EVENT, _onAuthSuccess);
+      socket.off(CONSTANTS.AUTH_ERROR_EVENT, _onAuthError);
     }
 
     function _resolve(res) {
@@ -45,10 +45,10 @@ function _authenticateSocketConnection(client, socket, authToken, code) {
       _reject(new errors.AuthenticationError(err));
     }
 
-    socket.once(SHARED_CONSTANTS.AUTH_SUCCESS_EVENT, _onAuthSuccess);
-    socket.once(SHARED_CONSTANTS.AUTH_ERROR_EVENT, _onAuthError);
+    socket.once(CONSTANTS.AUTH_SUCCESS_EVENT, _onAuthSuccess);
+    socket.once(CONSTANTS.AUTH_ERROR_EVENT, _onAuthError);
 
-    socket.emit(SHARED_CONSTANTS.AUTH_REQUEST_EVENT, {
+    socket.emit(CONSTANTS.AUTH_REQUEST_EVENT, {
       authToken: authToken,
       code: code,
       role: ROLES.AUTHENTICATED_CLIENT,
@@ -104,8 +104,61 @@ exports.connect = function (authToken, code) {
       // client is authenticated
       var socket = self.socket;
 
+      // set the connected property to true
+      self.connected = true;
+
+      /**
+       * Handle h-workspace specific events
+       * - message
+       * - room-destroyed
+       * - workspace-update-started
+       * - workspace-update-finished
+       * - workspace-update-failed
+       */
       // connect the socket messages to the Intercomm#handleMessage method
-      socket.on(SHARED_CONSTANTS.MESSAGE_EVENT, self.handleMessage);
+      socket.on(CONSTANTS.MESSAGE_EVENT, self.handleMessage);
+
+      /**
+       * When the workspace room is destroyed,
+       * a special event is emitted by the socket connection
+       * This event MUST be handled by clients, as it indicates that 
+       * the client connection is not valid anymore and a new
+       * connection should be instantiated.
+       */
+      socket.on(
+        CONSTANTS.ROOM_DESTROYED_EVENT,
+        function () {
+          self.connected = false;
+          self.emit(CONSTANTS.ROOM_DESTROYED_EVENT);
+        }
+      );
+
+      socket.on(
+        CONSTANTS.WORKSPACE_EVENTS.UPDATE_STARTED,
+        function () {
+          // prevent any writes during update
+          self.connected = false;
+          self.emit(CONSTANTS.WORKSPACE_EVENTS.UPDATE_STARTED);
+        }
+      );
+
+      socket.on(
+        CONSTANTS.WORKSPACE_EVENTS.UPDATE_FINISHED,
+        function () {
+          // reenable writes after update finished
+          self.connected = true;
+          self.emit(CONSTANTS.WORKSPACE_EVENTS.UPDATE_FINISHED);
+        }
+      );
+
+      socket.on(
+        CONSTANTS.WORKSPACE_EVENTS.UPDATE_FAILED,
+        function () {
+          // reenable writes after update finished
+          self.connected = true;
+          self.emit(CONSTANTS.WORKSPACE_EVENTS.UPDATE_FAILED);
+        }
+      );
 
       /**
        * Handle socket.io socket's events
@@ -120,20 +173,38 @@ exports.connect = function (authToken, code) {
        */
       socket.on('connect', function () { console.log('connect'); });
       socket.on('error', function () { console.log('error'); });
-      socket.on('disconnect', function () { console.log('disconnect'); });
+      socket.on('disconnect', function () {
+        self.connected = false;
+      });
       socket.on('reconnect', function () {
         _authenticateSocketConnection(self, socket, authToken, code)
           .then(function () {
+            self.connected = true;
             console.log('reauth successful');
           })
           .catch(function (err) {
+            self.connected = false;
             console.log('reauth error', err);
           });
       });
-      socket.on('reconnect_attempt', function () { console.log('reconnect_attempt'); });
-      socket.on('reconnecting', function () { console.log('reconnecting'); });
-      socket.on('reconnect_error', function () { console.log('reconnect_error'); });
-      socket.on('reconnect_failed', function () { console.log('reconnect_failed'); });
+      socket.on('reconnect_attempt', function () {
+        self.connected = false;
+        console.log('reconnect_attempt');
+      });
+      socket.on('reconnecting', function () {
+        self.emit('reconnecting');
+
+        self.connected = false;
+        console.log('reconnecting');
+      });
+      socket.on('reconnect_error', function () {
+        self.connected = false;
+        console.log('reconnect_error');
+      });
+      socket.on('reconnect_failed', function () {
+        self.connected = false;
+        console.log('reconnect_failed');
+      });
 
       // return nothing for the promise
       return;
