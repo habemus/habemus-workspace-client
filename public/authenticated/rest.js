@@ -155,3 +155,54 @@ exports.loadLatestVersion = function (authToken, identifier, options) {
       });
   });
 };
+
+/**
+ * Creates a project version from the current files
+ * in the workspace
+ * @param  {String} authToken
+ * @param  {String} identifier
+ * @param  {Object} options
+ * @return {Bluebird -> Workspace}
+ */
+exports.createProjectVersion = function (authToken, identifier, options) {
+  if (!authToken) {
+    return Bluebird.reject(new errors.Unauthorized());
+  }
+
+  if (!identifier) {
+    return Bluebird.reject(new errors.InvalidOption('identifier', 'required', 'identifier is required'));
+  }
+
+  options = options || {};
+
+  var serverURI = this.serverURI;
+  var query = {};
+
+  if (options.byProjectId) {
+    query.byProjectId = true;
+  }
+
+  if (options.byProjectCode) {
+    query.byProjectCode = true;
+  }
+
+  return new Bluebird(function (resolve, reject) {
+    superagent
+      .post(serverURI + '/project/' + identifier + '/workspace/create-project-version')
+      .query(query)
+      .set('Authorization', 'Bearer ' + authToken)
+      .end(function (err, res) {
+        if (err) {
+
+          if (res && res.body && res.body.error) {
+            reject(res.body.error);
+          } else {
+            reject(err);
+          }
+          return;
+        }
+
+        resolve(res.body.data);
+      });
+  });
+};
