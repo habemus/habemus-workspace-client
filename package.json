@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "bluebird": "^3.4.6",
-    "intercomm": "^1.0.0-alpha.2",
+    "intercomm": "^1.0.0-alpha.3",
     "socket.io-client": "^1.5.0",
     "superagent": "^2.3.0"
   }
