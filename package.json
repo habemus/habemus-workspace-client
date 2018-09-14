@@ -1,6 +1,6 @@
 {
-  "name": "h-workspace-client",
-  "version": "0.0.0",
+  "name": "habemus-workspace-client",
+  "version": "2.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,7 @@
   "dependencies": {
     "bluebird": "^3.4.6",
     "intercomm": "^1.0.0-alpha.3",
-    "socket.io-client": "^1.5.0",
-    "superagent": "^2.3.0"
+    "socket.io-client": "^2.1.1",
+    "superagent": "^3.8.3"
   }
 }
